@@ -73,6 +73,10 @@ class Population:
         self.individuals.extend(new_individuals)
         self._is_sorted = False
 
+    def sort_by(self, score):
+        self.individuals.sort(key=score)
+        self._is_sorted = False
+
     def sort_by_fitness(self):
         if self._is_sorted:
             return
@@ -110,6 +114,32 @@ def _get_parents_from(selected, n_offsprings=None):
     return mothers, fathers
 
 
+def _choice_by_roulette(population: Population, visited=set()):
+    population.sort_by_fitness()
+    lowest_fitness = min(i.fitness for i in population.individuals if i not in visited)
+
+    offset = 0
+    if lowest_fitness < 0:
+        offset = -lowest_fitness
+
+    total_fitness = sum(i.fitness + offset for i in population.individuals if i not in visited)
+    draw = random.random()
+    accumulated = 0
+
+    if total_fitness == 0.0:
+        return population.individuals[-1]
+
+    for individual in set(population.individuals)-visited:
+        fitness = individual.fitness + offset
+        probability = fitness / total_fitness
+        accumulated += probability
+
+        if draw <= accumulated:
+            return individual
+
+    return population.individuals[-1]
+
+
 class Selection:
     @staticmethod
     def tournament(population: Population, n_offsprings: int, contenders_per_round=2):
@@ -125,7 +155,20 @@ class Selection:
 
     @staticmethod
     def roulette_wheel(population: Population, n_offsprings: int):
-        pass
+        visited = set()
+        fathers = []
+        mothers = []
+        for i in range(n_offsprings * 2):
+            mother = _choice_by_roulette(population, visited)
+            visited.add(mother)
+            father = _choice_by_roulette(population, visited)
+            visited.add(father)
+
+            fathers.append(father)
+            mothers.append(mother)
+
+        return mothers, fathers
+
 
     @staticmethod
     def random(population: Population, n_offsprings: int):
@@ -147,8 +190,6 @@ class Evolution:
                  pair_params=None,
                  selection_method=Selection.fittest,
                  fitness_func=None):
-
-        print(selection_method)
 
         assert n_offsprings <= size / 2
         assert size >= 2

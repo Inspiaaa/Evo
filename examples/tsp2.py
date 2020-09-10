@@ -1,5 +1,5 @@
 
-from evo2 import Individual, Evolution
+from evo2 import Individual, Evolution, Selection
 
 import random
 import math
@@ -52,19 +52,40 @@ class TSP (Individual):
         self.city_names = []
 
     def pair(self, other, pair_params):
-        split_pos = int(pair_params["split_ratio"] * len(self.city_names))
-
-        own_head = self.city_names[:split_pos]
-        own_tail = self.city_names[split_pos:]
-        other_tail = other.city_names[split_pos:]
-
-        duplicates = set(own_head) & set(other_tail)
-        replacements = list(set(own_tail) - set(other_tail))
-
-        offspring_cities = own_head + [city if city not in duplicates else replacements.pop() for city in other_tail]
+        # Based on https://www.researchgate.net/publication/236026740_AN_EFFICIENT_CROSSOVER_OPERATOR_FOR_TRAVELING_SALESMAN_PROBLEM
 
         offspring = TSP()
-        offspring.city_names = offspring_cities
+
+        if len(self.city_names) < 1:
+            return offspring
+
+        # The algorithm requires at least 1 starting city
+        start_index = random.randint(1, len(self.city_names))
+        offspring.city_names.extend(self.city_names[:start_index])
+
+        visited = set(self.city_names[:start_index])
+
+        for own_next, other_next in zip(self.city_names[start_index:], other.city_names[start_index:]):
+
+            last_city = offspring.city_names[-1]
+            dist_own = distance_matrix[last_city][own_next]
+            dist_other = distance_matrix[last_city][other_next]
+
+            min_dist = min(dist_own, dist_other)
+
+            if min_dist == dist_own and own_next not in visited:
+                offspring.city_names.append(own_next)
+                visited.add(own_next)
+            elif min_dist == dist_other and other_next not in visited:
+                offspring.city_names.append(other_next)
+                visited.add(other_next)
+            else:
+                for city in self.city_names:
+                    if city not in visited:
+                        offspring.city_names.append(city)
+                        visited.add(city)
+                        break
+
         return offspring
 
     def mutate(self, mutate_params):
@@ -104,10 +125,11 @@ def visualise_route(solution, blocking=True):
 
 evo = Evolution(
     TSP,
-    100,
-    n_offsprings=25,
+    40,
+    n_offsprings=10,
     pair_params={"split_ratio": 0.1},
     mutate_params={"rate": 20},
+    selection_method=Selection.random,
     fitness_func=fitness
 )
 
@@ -116,9 +138,15 @@ evo = Evolution(
 
 pre_optimisation = -fitness(evo.pool.individuals[0])
 
-for i in tqdm(range(250)):
+for i in tqdm(range(500)):
     best = evo.evolve()
+
+    diversity = evo.pool.compute_diversity()
+    if diversity != 0:
+        evo.mutate_params["rate"] = int(500 / diversity)
+
     visualise_route(best[0], blocking=False)
+
 
 visualise_route(best[0], blocking=False)
 post_optimisation = -fitness(best[0])
