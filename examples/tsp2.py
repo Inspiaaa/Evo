@@ -5,7 +5,7 @@ import math
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 
-#random.seed(100)
+random.seed(100)
 # Best ever: 307
 
 city_names = [str(i) for i in range(20)]
@@ -157,9 +157,9 @@ evo = Evolution(
     TSP,
     40,
     n_offsprings=20,
-    pair_params={"min_gene_len": 1, "max_gene_len": 5, "reverse_chance": 0.5},
+    pair_params={"min_gene_len": 1, "max_gene_len": 8, "reverse_chance": 0.5},
     mutate_params={"random_rate": 3, "min_reverse_len": 2, "max_reverse_len": 5},
-    selection_method=Selection.fittest,
+    selection_method=Selection.tournament,
     fitness_func=fitness
 )
 

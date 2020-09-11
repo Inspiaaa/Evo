@@ -202,13 +202,17 @@ class Selection:
         contenders = set(population.individuals)
         champions = []
 
-        for round_num in range(n_offsprings*2):
+        round_num = 0
+        for round_num in range(min(n_offsprings*2, len(population.individuals)-1)):
             round_contenders = set(contenders.pop() for _ in range(contenders_per_round))
             winner = max(round_contenders, key=operator.attrgetter("fitness"))
             round_contenders.remove(winner)
 
             champions.append(winner)
             contenders.update(round_contenders)
+
+        if len(contenders) != 0 and round_num != n_offsprings*2 -1:
+            champions.extend(sorted(contenders, key=operator.attrgetter("fitness"), reverse=True))
 
         return _get_parents_from(champions)
 
