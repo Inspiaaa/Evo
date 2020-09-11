@@ -6,8 +6,9 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 
 #random.seed(100)
+# Best ever: 307
 
-city_names = [str(i) for i in range(50)]
+city_names = [str(i) for i in range(20)]
 city_positions = {name: (random.randint(0, 100), random.randint(0, 100)) for name in city_names}
 
 distance_matrix = {}
@@ -114,6 +115,7 @@ class TSP(Individual):
         return offspring
 
     def mutate(self, mutate_params):
+        # TODO: Another mutation type: Rotate / Shift / Wrap a list around -a to b times
         start = random.randint(0, len(self.city_names))
         end = min(len(self.city_names),
                   random.randint(mutate_params["min_reverse_len"], mutate_params["max_reverse_len"]))
@@ -156,7 +158,7 @@ evo = Evolution(
     40,
     n_offsprings=20,
     pair_params={"min_gene_len": 1, "max_gene_len": 5, "reverse_chance": 0.5},
-    mutate_params={"random_rate": 5, "min_reverse_len": 2, "max_reverse_len": 7},
+    mutate_params={"random_rate": 3, "min_reverse_len": 2, "max_reverse_len": 5},
     selection_method=Selection.fittest,
     fitness_func=fitness
 )

@@ -199,13 +199,16 @@ class SocialDisasters:
 class Selection:
     @staticmethod
     def tournament(population: Population, n_offsprings: int, contenders_per_round=2):
-        contenders = random.sample(population.individuals, n_offsprings*2*contenders_per_round)
+        contenders = set(population.individuals)
+        champions = []
 
-        champions = [
-            max(round_contenders, key=operator.attrgetter("fitness"))
-            for round_contenders
-            in _grouper(contenders_per_round, contenders)
-        ]
+        for round_num in range(n_offsprings*2):
+            round_contenders = set(contenders.pop() for _ in range(contenders_per_round))
+            winner = max(round_contenders, key=operator.attrgetter("fitness"))
+            round_contenders.remove(winner)
+
+            champions.append(winner)
+            contenders.update(round_contenders)
 
         return _get_parents_from(champions)
 
