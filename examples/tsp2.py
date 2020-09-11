@@ -1,18 +1,14 @@
-
-from evo2 import Individual, Evolution, Selection
+from evo2 import Individual, Evolution, Selection, SocialDisasters
 
 import random
 import math
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 
+#random.seed(100)
 
-random.seed(100)
-
-
-city_names = [str(i) for i in range(20)]
+city_names = [str(i) for i in range(50)]
 city_positions = {name: (random.randint(0, 100), random.randint(0, 100)) for name in city_names}
-
 
 distance_matrix = {}
 for start_city in city_names:
@@ -21,7 +17,7 @@ for start_city in city_names:
     for end_city in city_names:
         start = city_positions[start_city]
         end = city_positions[end_city]
-        dist = math.sqrt((end[0]-start[0])**2 + (end[1]-start[1])**2)
+        dist = math.sqrt((end[0] - start[0]) ** 2 + (end[1] - start[1]) ** 2)
 
         local_distances[end_city] = dist
 
@@ -44,56 +40,88 @@ def fitness(solution):
     return -distance
 
 
-class TSP (Individual):
+def reverse_gene(gene, start, end):
+    gene[start:end] = reversed(gene[start:end])
+
+
+def randomly_mutate_gene(gene):
+    indices = range(len(gene))
+    a, b = random.sample(indices, 2)
+    gene[a], gene[b] = gene[b], gene[a]
+
+
+class TSP(Individual):
     __slots__ = "city_names"
 
     def __init__(self):
         super(TSP, self).__init__()
         self.city_names = []
 
-    def pair(self, other, pair_params):
-        # Based on https://www.researchgate.net/publication/236026740_AN_EFFICIENT_CROSSOVER_OPERATOR_FOR_TRAVELING_SALESMAN_PROBLEM
+    def pair2(self, other, pair_params):
+        split_pos = int(pair_params["split_ratio"] * len(self.city_names))
 
+        own_head = self.city_names[:split_pos]
+        own_tail = self.city_names[split_pos:]
+        other_tail = other.city_names[split_pos:]
+
+        duplicates = set(own_head) & set(other_tail)
+        replacements = list(set(own_tail) - set(other_tail))
+
+        offspring_cities = own_head + [city if city not in duplicates else replacements.pop() for city in other_tail]
+
+        offspring = TSP()
+        offspring.city_names = offspring_cities
+        return offspring
+
+    def pair(self, other, pair_params):
         offspring = TSP()
 
         if len(self.city_names) < 1:
             return offspring
 
-        # The algorithm requires at least 1 starting city
-        start_index = random.randint(1, len(self.city_names))
-        offspring.city_names.extend(self.city_names[:start_index])
+        start_idx = random.randint(0, len(self.city_names) - 1)
+        end_idx = min(len(self.city_names),
+                      start_idx + random.randint(pair_params["min_gene_len"], pair_params["max_gene_len"]))
 
-        visited = set(self.city_names[:start_index])
+        offspring.city_names.extend(self.city_names[:start_idx])
+        visited = set(self.city_names[:start_idx])
 
-        for own_next, other_next in zip(self.city_names[start_index:], other.city_names[start_index:]):
+        gene_to_copy = other.city_names[start_idx:end_idx]
+        if random.random() <= pair_params["reverse_chance"]:
+            gene_to_copy = reversed(gene_to_copy)
 
-            last_city = offspring.city_names[-1]
-            dist_own = distance_matrix[last_city][own_next]
-            dist_other = distance_matrix[last_city][other_next]
-
-            min_dist = min(dist_own, dist_other)
-
-            if min_dist == dist_own and own_next not in visited:
-                offspring.city_names.append(own_next)
-                visited.add(own_next)
-            elif min_dist == dist_other and other_next not in visited:
-                offspring.city_names.append(other_next)
-                visited.add(other_next)
-            else:
-                for city in self.city_names:
+        for city in gene_to_copy:
+            if city in visited:
+                for city in self.city_names[start_idx:]:
                     if city not in visited:
-                        offspring.city_names.append(city)
-                        visited.add(city)
                         break
+
+            offspring.city_names.append(city)
+            visited.add(city)
+
+        if end_idx == len(self.city_names):
+            return offspring
+
+        for city in self.city_names[end_idx:]:
+            if city in visited:
+                for city in self.city_names[start_idx:]:
+                    if city not in visited:
+                        break
+
+            offspring.city_names.append(city)
+            visited.add(city)
 
         return offspring
 
     def mutate(self, mutate_params):
-        indices = range(len(self.city_names))
+        start = random.randint(0, len(self.city_names))
+        end = min(len(self.city_names),
+                  random.randint(mutate_params["min_reverse_len"], mutate_params["max_reverse_len"]))
 
-        for _ in range(random.randint(0, mutate_params["rate"])):
-            a, b = random.sample(indices, 2)
-            self.city_names[a], self.city_names[b] = self.city_names[b], self.city_names[a]
+        reverse_gene(self.city_names, start, end)
+
+        for i in range(random.randint(0, mutate_params["random_rate"])):
+            randomly_mutate_gene(self.city_names)
 
     def create(self, init_params):
         self.city_names = city_names.copy()
@@ -126,32 +154,31 @@ def visualise_route(solution, blocking=True):
 evo = Evolution(
     TSP,
     40,
-    n_offsprings=10,
-    pair_params={"split_ratio": 0.1},
-    mutate_params={"rate": 20},
-    selection_method=Selection.random,
+    n_offsprings=20,
+    pair_params={"min_gene_len": 1, "max_gene_len": 5, "reverse_chance": 0.5},
+    mutate_params={"random_rate": 5, "min_reverse_len": 2, "max_reverse_len": 7},
+    selection_method=Selection.fittest,
     fitness_func=fitness
 )
 
-#visualise_route(TSP())
-#plt.show()
+# visualise_route(TSP())
+# plt.show()
 
 pre_optimisation = -fitness(evo.pool.individuals[0])
 
 for i in tqdm(range(500)):
     best = evo.evolve()
 
-    diversity = evo.pool.compute_diversity()
-    if diversity != 0:
-        evo.mutate_params["rate"] = int(500 / diversity)
+    #diversity = evo.pool.compute_diversity()
+    #if diversity < 100:
+    #    SocialDisasters.judgement_day(evo.pool)
 
     visualise_route(best[0], blocking=False)
-
 
 visualise_route(best[0], blocking=False)
 post_optimisation = -fitness(best[0])
 
 print(round(pre_optimisation), round(post_optimisation))
-print("Improvement:", (1-post_optimisation/pre_optimisation)*100, "%")
+print("Improvement:", (1 - post_optimisation / pre_optimisation) * 100, "%")
 
 plt.show()
