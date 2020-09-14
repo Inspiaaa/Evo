@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 
 random.seed(100)
-# Best ever: 307
+# Best ever: 303
 
 city_names = [str(i) for i in range(20)]
 city_positions = {name: (random.randint(0, 100), random.randint(0, 100)) for name in city_names}
@@ -57,22 +57,6 @@ class TSP(Individual):
     def __init__(self):
         super(TSP, self).__init__()
         self.city_names = []
-
-    def pair2(self, other, pair_params):
-        split_pos = int(pair_params["split_ratio"] * len(self.city_names))
-
-        own_head = self.city_names[:split_pos]
-        own_tail = self.city_names[split_pos:]
-        other_tail = other.city_names[split_pos:]
-
-        duplicates = set(own_head) & set(other_tail)
-        replacements = list(set(own_tail) - set(other_tail))
-
-        offspring_cities = own_head + [city if city not in duplicates else replacements.pop() for city in other_tail]
-
-        offspring = TSP()
-        offspring.city_names = offspring_cities
-        return offspring
 
     def pair(self, other, pair_params):
         offspring = TSP()
@@ -155,11 +139,11 @@ def visualise_route(solution, blocking=True):
 
 evo = Evolution(
     TSP,
-    40,
-    n_offsprings=20,
+    100,
+    n_offsprings=50,
     pair_params={"min_gene_len": 1, "max_gene_len": 8, "reverse_chance": 0.5},
     mutate_params={"random_rate": 3, "min_reverse_len": 2, "max_reverse_len": 5},
-    selection_method=Selection.tournament,
+    selection_method=Selection.fittest,
     fitness_func=fitness
 )
 
@@ -170,11 +154,6 @@ pre_optimisation = -fitness(evo.pool.individuals[0])
 
 for i in tqdm(range(500)):
     best = evo.evolve()
-
-    #diversity = evo.pool.compute_diversity()
-    #if diversity < 100:
-    #    SocialDisasters.judgement_day(evo.pool)
-
     visualise_route(best[0], blocking=False)
 
 visualise_route(best[0], blocking=False)

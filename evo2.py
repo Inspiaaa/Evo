@@ -6,9 +6,6 @@ import random
 import itertools
 
 
-# TODO: Add choice by roulette for crossovers https://hackernoon.com/genetic-algorithms-explained-a-python-implementation-sd4w374i
-
-
 class Individual (ABC):
     __slots__ = "fitness",
 
@@ -238,6 +235,16 @@ class Selection:
 
     @staticmethod
     def fittest(population: Population, n_offsprings: int):
+        """
+        Pairs the fittest of the population.
+
+        Args:
+            population:
+            n_offsprings: The desired number of offsprings after pairing (parents = 2*n_offsprings)
+
+        Returns:
+            The mating pool: Tuple (mothers, fathers)
+        """
         population.sort_by_fitness()
         return _get_parents_from(population.individuals, n_offsprings)
 
