@@ -41,6 +41,7 @@ def optimise_multi_param(
         search_gens=200,
         maximation_gens=200,
         population_size=100,
+        max_stall_gens=200,
         min_search_diversity=50):
 
     evo = Evolution(
@@ -54,16 +55,21 @@ def optimise_multi_param(
         fitness_func=lambda i: func(*i.params)
     )
 
-    for _ in trange(search_gens):
+    for _ in trange(search_gens, leave=False):
         evo.evolve()
         diversity = evo.pool.compute_diversity()
         if diversity < min_search_diversity:
             SocialDisasters.packing(evo.pool, min_search_diversity*0.1)
 
+        if evo.stall_gens > max_stall_gens:
+            break
+
     evo.selection_method = Selection.fittest
-    for _ in trange(maximation_gens):
-        print(evo.get_best_fitness())
+    for _ in trange(maximation_gens, leave=False):
         evo.evolve()
+
+        if evo.stall_gens > max_stall_gens:
+            break
 
     return evo.get_best(1)[0].params
 

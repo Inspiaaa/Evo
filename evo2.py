@@ -133,20 +133,21 @@ def _get_parents_from(selected, n_offsprings=None):
 
 def _choice_by_roulette(population: Population, visited=set()):
     population.sort_by_fitness()
-    lowest_fitness = min(i.fitness for i in population.individuals if i not in visited)
+    non_visited = [i for i in population.individuals if i not in visited]
+    lowest_fitness = min(non_visited, key=operator.attrgetter("fitness")).fitness
 
     offset = 0
     if lowest_fitness < 0:
         offset = -lowest_fitness
 
-    total_fitness = sum(i.fitness + offset for i in population.individuals if i not in visited)
+    total_fitness = sum(map(operator.attrgetter("fitness"), population.individuals))
     draw = random.random()
     accumulated = 0
 
     if total_fitness == 0.0:
         return population.individuals[-1]
 
-    for individual in set(population.individuals)-visited:
+    for individual in non_visited:
         fitness = individual.fitness + offset
         probability = fitness / total_fitness
         accumulated += probability
