@@ -265,6 +265,9 @@ class Evolution:
         assert n_offsprings >= 1
         assert selection_method is not None
 
+        self.gen_number = 0
+        self.stall_gens = 0
+
         self.mutate_params = mutate_params
         self.pair_params = pair_params
         self.n_offsprings = n_offsprings
@@ -272,6 +275,9 @@ class Evolution:
         self.selection_method = selection_method
 
         self.pool = Population(individual_class, fitness_func, size, init_params)
+
+    def get_best_fitness(self):
+        return self.get_best(1)[0].fitness
 
     def get_best(self, n):
         self.pool.sort_by_fitness()
@@ -285,6 +291,8 @@ class Evolution:
 
     def next_gen(self):
         mothers, fathers = self.selection_method(self.pool, self.n_offsprings)
+
+        prev_best_fitness = self.get_best_fitness()
 
         new_offsprings = []
         for mother, father in zip(mothers, fathers):
@@ -301,5 +309,13 @@ class Evolution:
 
         self.pool.kill_weakest(self.n_offsprings)
         self.pool.add(new_offsprings)
+
+        self.gen_number += 1
+
+        current_best_fitness = self.get_best_fitness()
+        if current_best_fitness > prev_best_fitness:
+            self.stall_gens = 0
+        else:
+            self.stall_gens += 1
 
         return self.pool.individuals

@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 
 random.seed(100)
-# Best ever: 303
+# Best ever: 294
 
 city_names = [str(i) for i in range(20)]
 city_positions = {name: (random.randint(0, 100), random.randint(0, 100)) for name in city_names}
@@ -152,8 +152,10 @@ evo = Evolution(
 
 pre_optimisation = -fitness(evo.pool.individuals[0])
 
+history = []
 for i in tqdm(range(500)):
     best = evo.evolve()
+    history.append(best[0].fitness)
     visualise_route(best[0], blocking=False)
 
 visualise_route(best[0], blocking=False)
@@ -162,4 +164,8 @@ post_optimisation = -fitness(best[0])
 print(round(pre_optimisation), round(post_optimisation))
 print("Improvement:", (1 - post_optimisation / pre_optimisation) * 100, "%")
 
+plt.show()
+
+plt.clf()
+plt.plot(list(range(len(history))), history)
 plt.show()
