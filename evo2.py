@@ -131,31 +131,27 @@ def _get_parents_from(selected, n_offsprings=None):
     return mothers, fathers
 
 
-def _choice_by_roulette(population: Population, visited=set()):
-    population.sort_by_fitness()
-    non_visited = [i for i in population.individuals if i not in visited]
+def _choice_by_roulette(non_visited) -> int:
     lowest_fitness = min(non_visited, key=operator.attrgetter("fitness")).fitness
 
     offset = 0
     if lowest_fitness < 0:
         offset = -lowest_fitness
 
-    total_fitness = sum(map(operator.attrgetter("fitness"), population.individuals))
+    total_fitness = sum(map(operator.attrgetter("fitness"), non_visited)) + offset*len(non_visited)
     draw = random.random()
     accumulated = 0
 
     if total_fitness == 0.0:
-        return population.individuals[-1]
+        return -1
 
-    for individual in non_visited:
+    for i in range(len(non_visited)):
+        individual = non_visited[i]
         fitness = individual.fitness + offset
         probability = fitness / total_fitness
         accumulated += probability
 
-        if draw <= accumulated:
-            return individual
-
-    return population.individuals[-1]
+    return -1
 
 
 # Other methods to preserve diversity:
@@ -216,17 +212,15 @@ class Selection:
 
     @staticmethod
     def roulette_wheel(population: Population, n_offsprings: int):
-        visited = set()
         fathers = []
         mothers = []
-        for i in range(n_offsprings * 2):
-            mother = _choice_by_roulette(population, visited)
-            visited.add(mother)
-            father = _choice_by_roulette(population, visited)
-            visited.add(father)
+        non_visited = population.individuals.copy()
+        for i in range(n_offsprings):
+            mother_idx = _choice_by_roulette(non_visited)
+            mothers.append(non_visited.pop(mother_idx))
 
-            fathers.append(father)
-            mothers.append(mother)
+            father_idx = _choice_by_roulette(non_visited)
+            fathers.append(non_visited.pop(father_idx))
 
         return mothers, fathers
 

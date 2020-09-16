@@ -77,4 +77,5 @@ def optimise_multi_param(
 def cost(a, b, c):
     return (a+1)*(b+2)*(c+3)*(a-b-c)*(c-b-a)
 
+
 print(optimise_multi_param(cost, lower_bounds=[-2, -2, -2], upper_bounds=[2, 2, 2]))
