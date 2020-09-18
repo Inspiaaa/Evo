@@ -151,6 +151,9 @@ def _choice_by_roulette(non_visited) -> int:
         probability = fitness / total_fitness
         accumulated += probability
 
+        if accumulated >= draw:
+            return i
+
     return -1
 
 

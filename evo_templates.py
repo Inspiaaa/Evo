@@ -30,7 +30,7 @@ class Optimisation (Individual):
     def pair(self, other, pair_params):
         offspring = Optimisation()
         split_pos = int(random.random() * len(self.params))
-        offspring.params = self.params[0:split_pos] + other.params[split_pos:]
+        offspring.params = self.params[:split_pos] + other.params[split_pos:]
         return offspring
 
 
