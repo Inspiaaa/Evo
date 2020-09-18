@@ -275,9 +275,9 @@ class Evolution:
         self.pool = Population(individual_class, fitness_func, size, init_params)
 
     def get_best_fitness(self):
-        return self.get_best(1)[0].fitness
+        return self.get_best_n(1)[0].fitness
 
-    def get_best(self, n):
+    def get_best_n(self, n):
         self.pool.sort_by_fitness()
         return self.pool.individuals[:n]
 
@@ -287,23 +287,35 @@ class Evolution:
 
         return self.pool.individuals
 
-    def next_gen(self):
-        mothers, fathers = self.selection_method(self.pool, self.n_offsprings)
+    def _offsprings_from_parents(self, mother, father):
+        offsprings = mother.pair(father, self.pair_params)
 
+        # Sometimes, more than just one offspring is created
+        if isinstance(offsprings, (list, tuple)):
+            for o in offsprings:
+                o.mutate(self.mutate_params)
+                self.pool.setup(o)
+            return offsprings
+        else:
+            # Only one offspring
+            offsprings.mutate(self.mutate_params)
+            self.pool.setup(offsprings)
+            return [offsprings]
+
+    def _offsprings_from_pool(self, mothers, fathers):
+        nested = [
+            self._offsprings_from_parents(mother, father)
+            for mother, father
+            in zip(mothers, fathers)]
+
+        new_offsprings = list(itertools.chain.from_iterable(nested))
+        return new_offsprings
+
+    def next_gen(self):
         prev_best_fitness = self.get_best_fitness()
 
-        new_offsprings = []
-        for mother, father in zip(mothers, fathers):
-            offspring = mother.pair(father, self.pair_params)
-
-            # Sometimes, more than just one offspring is created
-            if isinstance(offspring, (list, tuple)):
-                for o in offspring:
-                    o.mutate(self.mutate_params)
-                new_offsprings.extend(offspring)
-            else:
-                offspring.mutate(self.mutate_params)
-                new_offsprings.append(offspring)
+        mothers, fathers = self.selection_method(self.pool, self.n_offsprings)
+        new_offsprings = self._offsprings_from_pool(mothers, fathers)
 
         self.pool.kill_weakest(self.n_offsprings)
         self.pool.add(new_offsprings)

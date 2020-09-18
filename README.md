@@ -22,7 +22,7 @@ A lightweight library for creating genetic algorithms with ease in Python.
    
    
    class Optimisation (Individual):
-       # Using __slots__ makes the individual class use less memory
+       # __slots__ makes the individual class use less memory
        __slots__ = ("x")
    
        def __init__(self):
@@ -32,16 +32,19 @@ A lightweight library for creating genetic algorithms with ease in Python.
        # You can pass in your own data for initialisation
        # Although a dictionary is handy for that, any data type can be used
        def create(self, init_params):
+           # Here you randomly initialise the individual
            self.x = random.uniform(init_params["lower"], init_params["upper"])
        
+       # Mutate is used for introducing some randomness after pairing
        def mutate(self, mutate_params):
            self.x += random.random() * mutate_params["intensity"]
            # Clamp the x value into the desired range, if it goes over
            self.x = min(mutate_params["upper"], min(mutate_params["lower"], self.x))
    
+       # Create a new offspring (Also known as the crossover operator)
        def pair(self, other, pair_params):
            offspring = Optimisation()
-           offspring.x = ()self.x + other.x) / 2
+           offspring.x = (self.x + other.x) / 2
    
    ```
 

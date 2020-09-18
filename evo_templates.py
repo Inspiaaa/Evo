@@ -71,7 +71,7 @@ def optimise_multi_param(
         if evo.stall_gens > max_stall_gens:
             break
 
-    return evo.get_best(1)[0].params
+    return evo.get_best_n(1)[0].params
 
 
 def cost(a, b, c):
