@@ -131,32 +131,6 @@ def _get_parents_from(selected, n_offsprings=None):
     return mothers, fathers
 
 
-def _choice_by_roulette(non_visited) -> int:
-    lowest_fitness = min(non_visited, key=operator.attrgetter("fitness")).fitness
-
-    offset = 0
-    if lowest_fitness < 0:
-        offset = -lowest_fitness
-
-    total_fitness = sum(map(operator.attrgetter("fitness"), non_visited)) + offset*len(non_visited)
-    draw = random.random()
-    accumulated = 0
-
-    if total_fitness == 0.0:
-        return -1
-
-    for i in range(len(non_visited)):
-        individual = non_visited[i]
-        fitness = individual.fitness + offset
-        probability = fitness / total_fitness
-        accumulated += probability
-
-        if accumulated >= draw:
-            return i
-
-    return -1
-
-
 # Other methods to preserve diversity:
 # https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.106.8662&rep=rep1&type=pdf
 class SocialDisasters:
@@ -215,15 +189,51 @@ class Selection:
 
     @staticmethod
     def roulette_wheel(population: Population, n_offsprings: int):
+        non_visited = set(population.individuals)
+        sorted_fitnesses = sorted(map(operator.attrgetter("fitness"), non_visited), reverse=True)
+        total_fitness = sum(map(operator.attrgetter("fitness"), non_visited))
+
+        # TODO: Remove redundant statements
+        # (Heavily) relies on mutation to keep the algorithm fast
+        def _choice_by_roulette(non_visited, sorted_fitnesses, total_fitness) -> tuple:
+            lowest_fitness = sorted_fitnesses.pop()
+
+            offset = 0
+            if lowest_fitness < 0:
+                offset = -lowest_fitness
+
+            total_normalised_fitness = total_fitness + offset*len(non_visited)
+
+            if total_normalised_fitness == 0:
+                individual = non_visited.pop()
+                total_fitness -= individual.fitness
+                return total_fitness, individual 
+
+            draw = random.random()
+            accumulated = 0
+
+            for individual in non_visited:
+                normalised_fitness = individual.fitness + offset
+                probability = normalised_fitness / total_normalised_fitness
+                accumulated += probability
+
+                if accumulated >= draw:
+                    total_fitness -= individual.fitness
+                    non_visited.remove(individual)
+                    return total_fitness, individual
+
+            if len(non_visited) > 0:
+                individual = non_visited.pop()
+                total_fitness -= individual.fitness
+                return total_fitness, individual
+
         fathers = []
         mothers = []
-        non_visited = population.individuals.copy()
-        for i in range(n_offsprings):
-            mother_idx = _choice_by_roulette(non_visited)
-            mothers.append(non_visited.pop(mother_idx))
-
-            father_idx = _choice_by_roulette(non_visited)
-            fathers.append(non_visited.pop(father_idx))
+        for _ in range(n_offsprings):
+            total_fitness, mother = _choice_by_roulette(non_visited, sorted_fitnesses, total_fitness)
+            total_fitness, father = _choice_by_roulette(non_visited, sorted_fitnesses, total_fitness)
+            mothers.append(mother)
+            fathers.append(father)
 
         return mothers, fathers
 
