@@ -34,12 +34,12 @@ class Optimisation (Individual):
         return offspring
 
 
-def optimise_multi_param(
+def maximise_multi_param(
         func,
         lower_bounds,
         upper_bounds,
         search_gens=200,
-        maximation_gens=200,
+        maximisation_gens=200,
         population_size=100,
         max_stall_gens=200,
         min_search_diversity=50):
@@ -65,7 +65,7 @@ def optimise_multi_param(
             break
 
     evo.selection_method = Selection.fittest
-    for _ in trange(maximation_gens, leave=False):
+    for _ in trange(maximisation_gens, leave=False):
         evo.evolve()
 
         if evo.stall_gens > max_stall_gens:
@@ -78,4 +78,4 @@ def cost(a, b, c):
     return (a+1)*(b+2)*(c+3)*(a-b-c)*(c-b-a)
 
 
-print(optimise_multi_param(cost, lower_bounds=[-2, -2, -2], upper_bounds=[2, 2, 2]))
+print(maximise_multi_param(cost, lower_bounds=[-2, -2, -2], upper_bounds=[2, 2, 2]))

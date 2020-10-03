@@ -6,6 +6,11 @@ import random
 import itertools
 
 
+# TODO: Delete original evo file
+# TODO: Tidy examples
+# TODO: Rename evo.pool to evo.population
+
+
 class Individual (ABC):
     __slots__ = "fitness",
 
