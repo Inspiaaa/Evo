@@ -51,7 +51,7 @@ def maximise_multi_param(
         init_params={"lower": lower_bounds, "upper": upper_bounds},
         mutate_params={"lower": lower_bounds, "upper": upper_bounds, "intensity": 0.1},
         pair_params={},
-        selection_method=Selection.fittest,
+        selection_method=Selection.roulette_wheel,
         fitness_func=lambda i: func(*i.params)
     )
 
