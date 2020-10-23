@@ -8,7 +8,6 @@ import itertools
 
 # TODO: Delete original evo file
 # TODO: Tidy examples
-# TODO: Rename evo.pool to evo.population
 
 
 class Individual (ABC):
@@ -86,8 +85,8 @@ class Population:
         self.individuals.extend(new_individuals)
         self._is_sorted = False
 
-    def sort_by(self, score):
-        self.individuals.sort(key=score)
+    def sort_by(self, scoring_method):
+        self.individuals.sort(key=scoring_method)
         self._is_sorted = False
 
     def sort_by_fitness(self):
@@ -271,7 +270,22 @@ class Evolution:
                  mutate_params=None,
                  pair_params=None,
                  selection_method=Selection.fittest,
-                 fitness_func=None):
+                 fitness_func=None,
+                 kill_before_spawn=True):
+
+        """Creates a new evolution framework
+
+        Args:
+            individual_class: The type of the individuals of the population
+            size: The size of the population => How many individuals
+            n_offsprings: How many pairings per round
+            init_params: The argument passed to the individuals create(...) method
+            mutate_params: The argument passed to the individuals mutate(...) method
+            pair_params: The argument passed to the individuals pair(...) method
+            selection_method: A method that decides which individuals to pair together
+            fitness_func: A function calculating the fitness of an individual
+            kill_before_spawn: If true, the weakest individuals will be killed before adding the new offsprings
+        """
 
         assert n_offsprings <= size / 2
         assert size >= 2
@@ -287,20 +301,21 @@ class Evolution:
 
         self.selection_method = selection_method
 
-        self.pool = Population(individual_class, fitness_func, size, init_params)
+        self.population = Population(individual_class, fitness_func, size, init_params)
+        self.kill_before_spawn = kill_before_spawn
 
     def get_best_fitness(self):
         return self.get_best_n(1)[0].fitness
 
     def get_best_n(self, n):
-        self.pool.sort_by_fitness()
-        return self.pool.individuals[:n]
+        self.population.sort_by_fitness()
+        return self.population.individuals[:n]
 
     def evolve(self, iterations=1):
         for _ in range(iterations):
             self.next_gen()
 
-        return self.pool.individuals
+        return self.population.individuals
 
     def _offsprings_from_parents(self, mother, father):
         offsprings = mother.pair(father, self.pair_params)
@@ -309,12 +324,12 @@ class Evolution:
         if isinstance(offsprings, (list, tuple)):
             for o in offsprings:
                 o.mutate(self.mutate_params)
-                self.pool.setup(o)
+                self.population.setup(o)
             return offsprings
         else:
             # Only one offspring
             offsprings.mutate(self.mutate_params)
-            self.pool.setup(offsprings)
+            self.population.setup(offsprings)
             return [offsprings]
 
     def _offsprings_from_pool(self, mothers, fathers):
@@ -329,11 +344,14 @@ class Evolution:
     def next_gen(self):
         prev_best_fitness = self.get_best_fitness()
 
-        mothers, fathers = self.selection_method(self.pool, self.n_offsprings)
+        mothers, fathers = self.selection_method(self.population, self.n_offsprings)
         new_offsprings = self._offsprings_from_pool(mothers, fathers)
 
-        self.pool.kill_weakest(self.n_offsprings)
-        self.pool.add(new_offsprings)
+        if self.kill_before_spawn:
+            self.population.kill_weakest(len(new_offsprings))
+        self.population.add(new_offsprings)
+        if not self.kill_before_spawn:
+            self.population.kill_weakest(len(new_offsprings))
 
         self.gen_number += 1
 
@@ -343,4 +361,4 @@ class Evolution:
         else:
             self.stall_gens += 1
 
-        return self.pool.individuals
+        return self.population.individuals

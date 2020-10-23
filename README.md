@@ -84,7 +84,7 @@ best_fitness = best.fitness
 - Computing the diversity: Evo uses the standard deviation of the fitness values to describe the diversity of the population
 
 ```python
-diversity = evo.pool.compute_diversity()
+diversity = evo.population.compute_diversity()
 ```
 
 - Stopping after a certain number of generations without improvement
@@ -104,12 +104,18 @@ while True:
 from evo2 import SocialDisasters
 
 for i in range(100):
-    diversity = evo.pool.compute_diversity()
+    diversity = evo.population.compute_diversity()
 
     if diversity < 50:
         # Randomly re-initialise individuals that are too similar
-        SocialDisasters.packing(evo.pool, 10)
+        SocialDisasters.packing(evo.population, 10)
 
-        # Or only keep the best individual and randomly re-initialise all others
-        SocialDisasters.judgement_day(evo.pool)
+        # OR only keep the best individual and randomly re-initialise all others
+        SocialDisasters.judgement_day(evo.population)
 ```
+
+- Getting the generation number:
+  
+  ```python
+  print(f"Generation #{ evo.gen_number }")
+  ```

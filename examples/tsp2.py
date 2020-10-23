@@ -150,7 +150,7 @@ evo = Evolution(
 # visualise_route(TSP())
 # plt.show()
 
-pre_optimisation = -fitness(evo.pool.individuals[0])
+pre_optimisation = -fitness(evo.population.individuals[0])
 
 history = []
 for i in tqdm(range(500)):

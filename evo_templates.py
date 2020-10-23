@@ -57,9 +57,9 @@ def maximise_multi_param(
 
     for _ in trange(search_gens, leave=False):
         evo.evolve()
-        diversity = evo.pool.compute_diversity()
+        diversity = evo.population.compute_diversity()
         if diversity < min_search_diversity:
-            SocialDisasters.packing(evo.pool, min_search_diversity*0.1)
+            SocialDisasters.packing(evo.population, min_search_diversity * 0.1)
 
         if evo.stall_gens > max_stall_gens:
             break

@@ -8,13 +8,14 @@ _original_func_name = "_multicore_original_func"
 _worker_pool: multiprocessing.Pool = None
 
 
-# TODO: Fix for the use of lambdas in evo.fitness_func (Remove that dependencz)
+# TODO: Fix for the use of lambdas in evo.fitness_func (Remove that dependency)
 
 
-class _OnExit():
+class _OnExit:
     def __init__(self, then):
         self.then = then
-    def __exit__():
+
+    def __exit__(self):
         self.then()
 
 

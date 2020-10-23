@@ -68,6 +68,6 @@ for it in range(100):
     plt.pause(0.001)
     time.sleep(0.1)
 
-    evo.mutate_params["intensity"] = 1 / (evo.pool.compute_diversity() / 1)
+    evo.mutate_params["intensity"] = 1 / (evo.population.compute_diversity() / 1)
 
 plt.show()
