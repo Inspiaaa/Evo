@@ -114,7 +114,7 @@ for i in range(100):
         SocialDisasters.judgement_day(evo.population)
 ```
 
-- Getting the generation number:
+- Getting the generation number
   
   ```python
   print(f"Generation #{ evo.gen_number }")
@@ -144,5 +144,19 @@ The Evo library has a builtin template for multi parameter optimisation problems
    a, b, c = maximise_multi_param(cost, lower_bounds=[-2, -2, -2], upper_bounds=[2, 2, 2]))
    print(a, b, c)
    ```
-   
-   
+
+
+
+### Different selection methods
+
+The selection method tells Evo, which individuals to pair
+
+
+
+- `Selection.random` Randomly chooses individuals
+
+- `Selection.fittest` Chooses  the best individuals
+
+- `Selection.roullette_wheel` Gives the best individuals a better chance of being chosen
+
+- `Selection.tournament` Takes two random individuals and chooses the better one
