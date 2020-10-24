@@ -14,6 +14,12 @@ class Mutation:
         gene[a], gene[b] = gene[b], gene[a]
 
     @staticmethod
-    def shift_gene(gene, n):
+    def shift_gene(gene, n, inplace=False):
         n = -n
-        return gene[n:] + gene[:n]
+        new = gene[n:] + gene[:n]
+
+        if not inplace:
+            return new
+
+        else:
+            gene[:] = new

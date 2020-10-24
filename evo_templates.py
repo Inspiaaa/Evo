@@ -2,7 +2,11 @@
 from evo2 import Individual, Evolution, Selection, SocialDisasters
 from evo_std import Mutation
 import random
-from tqdm import trange
+
+try:
+    from tqdm import trange
+except ImportError:
+    trange = range
 
 
 def _clamp(val, minval, maxval):

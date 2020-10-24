@@ -1,12 +1,14 @@
 from evo2 import Individual, Evolution, Selection, SocialDisasters
+from evo_std import Mutation
 
 import random
 import math
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 
+
 random.seed(100)
-# Best ever: 294
+# Best ever: 290
 
 city_names = [str(i) for i in range(20)]
 city_positions = {name: (random.randint(0, 100), random.randint(0, 100)) for name in city_names}
@@ -41,18 +43,8 @@ def fitness(solution):
     return -distance
 
 
-def reverse_gene(gene, start, end):
-    gene[start:end] = reversed(gene[start:end])
-
-
-def randomly_mutate_gene(gene):
-    indices = range(len(gene))
-    a, b = random.sample(indices, 2)
-    gene[a], gene[b] = gene[b], gene[a]
-
-
 class TSP(Individual):
-    __slots__ = "city_names"
+    __slots__ = "city_names",
 
     def __init__(self):
         super(TSP, self).__init__()
@@ -99,15 +91,23 @@ class TSP(Individual):
         return offspring
 
     def mutate(self, mutate_params):
-        # TODO: Another mutation type: Rotate / Shift / Wrap a list around -a to b times
+        # Randomly reverse a segment of the gene
         start = random.randint(0, len(self.city_names))
-        end = min(len(self.city_names),
-                  random.randint(mutate_params["min_reverse_len"], mutate_params["max_reverse_len"]))
+        end = min(
+            len(self.city_names),
+            random.randint(mutate_params["min_reverse_len"], mutate_params["max_reverse_len"]))
 
-        reverse_gene(self.city_names, start, end)
+        Mutation.reverse_gene(self.city_names, start, end)
 
+        # Randomly swap two towns
         for i in range(random.randint(0, mutate_params["random_rate"])):
-            randomly_mutate_gene(self.city_names)
+            Mutation.randomly_swap_gene(self.city_names)
+
+        # Shift the gene => Change the start and end
+        Mutation.shift_gene(
+            self.city_names,
+            random.randint(mutate_params["min_shift"], mutate_params["max_shift"]),
+            inplace=True)
 
     def create(self, init_params):
         self.city_names = city_names.copy()
@@ -142,7 +142,7 @@ evo = Evolution(
     100,
     n_offsprings=50,
     pair_params={"min_gene_len": 1, "max_gene_len": 8, "reverse_chance": 0.5},
-    mutate_params={"random_rate": 3, "min_reverse_len": 2, "max_reverse_len": 5},
+    mutate_params={"random_rate": 3, "min_reverse_len": 2, "max_reverse_len": 5, "min_shift": -2, "max_shift": 2},
     selection_method=Selection.fittest,
     fitness_func=fitness
 )
@@ -151,6 +151,8 @@ evo = Evolution(
 # plt.show()
 
 pre_optimisation = -fitness(evo.population.individuals[0])
+
+evo.evolve(500)
 
 history = []
 for i in tqdm(range(500)):

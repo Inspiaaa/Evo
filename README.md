@@ -119,3 +119,30 @@ for i in range(100):
   ```python
   print(f"Generation #{ evo.gen_number }")
   ```
+
+
+
+### Using the optimisation template
+
+The Evo library has a builtin template for multi parameter optimisation problems
+
+1. Copy the `evo_templates.py` file in to your workspace (as well as the main Evo file itself)
+
+2. Define the problem
+   
+   ```python
+   # 3 parameter function, taking 3 floats
+   def cost(a, b, c):
+       return (a+1)*(b+2)*(c+3)*(a-b-c)*(c-b-a)
+   ```
+
+3. Let the library optimise for you
+   
+   ```python
+   from evo_templates import maximise_multi_param
+   
+   a, b, c = maximise_multi_param(cost, lower_bounds=[-2, -2, -2], upper_bounds=[2, 2, 2]))
+   print(a, b, c)
+   ```
+   
+   
