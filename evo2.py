@@ -311,16 +311,10 @@ class Evolution:
         self.population.sort_by_fitness()
         return self.population.individuals[:n]
 
-    def evolve(self, iterations=1):
-        for _ in range(iterations):
-            self.next_gen()
-
-        return self.population.individuals
-
     def _offsprings_from_parents(self, mother, father):
         offsprings = mother.pair(father, self.pair_params)
 
-        # Sometimes, more than just one offspring is created
+        # Sometimes, more than just one offspring are created
         if isinstance(offsprings, (list, tuple)):
             for o in offsprings:
                 o.mutate(self.mutate_params)
@@ -340,6 +334,12 @@ class Evolution:
 
         new_offsprings = list(itertools.chain.from_iterable(nested))
         return new_offsprings
+
+    def evolve(self, iterations=1):
+        for _ in range(iterations):
+            self.next_gen()
+
+        return self.population.individuals
 
     def next_gen(self):
         prev_best_fitness = self.get_best_fitness()

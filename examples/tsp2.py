@@ -152,7 +152,7 @@ evo = Evolution(
 
 pre_optimisation = -fitness(evo.population.individuals[0])
 
-evo.evolve(500)
+#evo.evolve(500)
 
 history = []
 for i in tqdm(range(500)):

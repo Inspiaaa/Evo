@@ -20,6 +20,5 @@ class Mutation:
 
         if not inplace:
             return new
-
         else:
             gene[:] = new
