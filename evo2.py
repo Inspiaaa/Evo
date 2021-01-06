@@ -6,7 +6,6 @@ import random
 import itertools
 
 
-# TODO: Delete original evo file
 # TODO: Tidy examples
 
 
@@ -314,7 +313,7 @@ class Evolution:
     def _offsprings_from_parents(self, mother, father):
         offsprings = mother.pair(father, self.pair_params)
 
-        # Sometimes, more than just one offspring are created
+        # Sometimes, more than just one offspring is created
         if isinstance(offsprings, (list, tuple)):
             for o in offsprings:
                 o.mutate(self.mutate_params)

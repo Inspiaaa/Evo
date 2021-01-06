@@ -29,7 +29,7 @@ def _parallel_offspring_processing(evo, mothers, father):
     return new_offsprings
 
 
-def deparellise(evo):
+def deparallelise(evo):
     if hasattr(evo, _original_func_name):
         evo._offsprings_from_pool = getattr(evo, _original_func_name)
         delattr(evo, _original_func_name)
@@ -43,4 +43,4 @@ def parallelise(evo, num_cpus=6):
     setattr(evo, _original_func_name, evo._offsprings_from_pool)
     evo._offsprings_from_pool = functools.partial(_parallel_offspring_processing, evo)
 
-    return _OnExit(lambda: deparellise(evo))
+    return _OnExit(lambda: deparallelise(evo))
