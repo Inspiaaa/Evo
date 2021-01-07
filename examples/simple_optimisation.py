@@ -1,5 +1,5 @@
 
-from evo import Individual, Evolution
+from evo2 import Individual, Evolution
 
 import random
 import matplotlib.pyplot as plt
@@ -11,6 +11,7 @@ class Optimisation (Individual):
 
     def __init__(self):
         self.x = 0
+        super().__init__()
 
     def __repr__(self):
         return str(self.x)

@@ -4,6 +4,9 @@ import itertools
 import functools
 
 
+# Warning: This tool is experimental
+
+
 _original_func_name = "_multicore_original_func"
 _worker_pool: multiprocessing.Pool = None
 

@@ -10,7 +10,8 @@ from tqdm import tqdm
 random.seed(100)
 # Best ever: 290
 
-city_names = [str(i) for i in range(20)]
+CITY_COUNT = 20
+city_names = [str(i) for i in range(CITY_COUNT)]
 city_positions = {name: (random.randint(0, 100), random.randint(0, 100)) for name in city_names}
 
 distance_matrix = {}
