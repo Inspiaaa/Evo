@@ -80,17 +80,19 @@ def maximise_multi_param(
     return evo.get_best_n(1)[0].params
 
 
-from math import *
-def cost(x, y):
-    # https://en.wikipedia.org/wiki/Test_functions_for_optimization
-    # Eggholder function
-    # Correct solution: x=512, y=404.2319
-    
-    # `-` before calculation to reformulate the minimisation problem into a maximisation problem
-    return - (
-            - (y + 47) * sin(sqrt(abs(x/2 + (y + 47))))
-            - x * sin(sqrt(abs(abs(x - (y + 47)))))
-    )
+if __name__ == '__main__':
+    from math import *
+
+    def cost(x, y):
+        # https://en.wikipedia.org/wiki/Test_functions_for_optimization
+        # Eggholder function
+        # Correct solution: x=512, y=404.2319
+
+        # `-` before calculation to reformulate the minimisation problem into a maximisation problem
+        return - (
+                - (y + 47) * sin(sqrt(abs(x/2 + (y + 47))))
+                - x * sin(sqrt(abs(abs(x - (y + 47)))))
+        )
 
 
-print(maximise_multi_param(cost, lower_bounds=[-512, -512], upper_bounds=[512, 512]))
+    print(maximise_multi_param(cost, lower_bounds=[-512, -512], upper_bounds=[512, 512]))

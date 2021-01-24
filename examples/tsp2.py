@@ -1,4 +1,4 @@
-from evo2 import Individual, Evolution, Selection, SocialDisasters
+from evo2 import Individual, Evolution, Selection
 from evo_std import Mutation
 
 import random
@@ -50,6 +50,10 @@ class TSP(Individual):
     def __init__(self):
         super(TSP, self).__init__()
         self.city_names = []
+
+    def create(self, init_params):
+        self.city_names = city_names.copy()
+        random.shuffle(self.city_names)
 
     def pair(self, other, pair_params):
         offspring = TSP()
@@ -109,10 +113,6 @@ class TSP(Individual):
             self.city_names,
             random.randint(mutate_params["min_shift"], mutate_params["max_shift"]),
             inplace=True)
-
-    def create(self, init_params):
-        self.city_names = city_names.copy()
-        random.shuffle(self.city_names)
 
 
 def visualise_route(solution, blocking=True):

@@ -1,5 +1,5 @@
 
-from evo import Individual, Evolution
+from evo2 import Individual, Evolution
 
 import random
 import math
@@ -50,6 +50,10 @@ class TSP (Individual):
     def __init__(self):
         self.city_names = []
 
+    def create(self, init_params):
+        self.city_names = city_names.copy()
+        random.shuffle(self.city_names)
+
     def pair(self, other, pair_params):
         split_pos = int(pair_params["split_ratio"] * len(self.city_names))
 
@@ -72,10 +76,6 @@ class TSP (Individual):
         for _ in range(random.randint(0, mutate_params["rate"])):
             a, b = random.sample(indices, 2)
             self.city_names[a], self.city_names[b] = self.city_names[b], self.city_names[a]
-
-    def create(self, init_params):
-        self.city_names = city_names.copy()
-        random.shuffle(self.city_names)
 
 
 def visualise_route(solution, blocking=True):
